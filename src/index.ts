@@ -44,19 +44,19 @@ app.use(
 );
 const upload = multer({ storage: storage });
 
-app.post('/uploads', (req, res) => {
-  upload.single('file')(req, res, (err) => {
-    if (err) {
-      return res.status(400).send(err.message);
-    }
-    if (!req.file) {
-      return res.status(400).send('No files were uploaded.');
-    }
-    res.json({
-      image_url: `${process.env.API_URL}img/${req.body.bucket}/${req.file.filename}`,
+  app.post('/uploads', (req, res) => {
+    upload.single('file')(req, res, (err) => {
+      if (err) {
+        return res.status(400).send(err.message);
+      }
+      if (!req.file) {
+        return res.status(400).send('No files were uploaded.');
+      }
+      res.json({
+        image_url: `${process.env.API_URL}img/${req.body.bucket}/${req.file.filename}`,
+      });
     });
   });
-});
 
 app.get('/img/:bucket/:filename', (req, res) => {
   const { bucket, filename } = req.params;
@@ -93,15 +93,15 @@ app.delete('/img/:filename', (req, res) => {
     res.status(404).send('File not found');
   }
 });
-
 app.get('/images', (req, res) => {
   const directoryPath = path.join(__dirname, '/public/upload/img/');
   const buckets = fs.readdirSync(directoryPath);
   const files = buckets.map((bucket) => {
     const bucketPath = path.join(directoryPath, bucket);
+    const images = fs.readdirSync(bucketPath);
     return {
       bucket,
-      files: fs.readdirSync(bucketPath),
+      images,
     };
   });
   res.json(files);
@@ -115,6 +115,29 @@ app.get('/images/:bucket', (req, res) => {
   }
   const files = fs.readdirSync(directoryPath);
   res.json(files);
+});
+
+app.get('/buckets', (req, res) => {
+  const directoryPath = path.join(__dirname, '/public/upload/img/');
+  const buckets = fs.readdirSync(directoryPath);
+  const bucketObjects = buckets.map((bucket, index) => {
+    return {
+      id: index + 1,
+      bucket: bucket,
+    };
+  });
+  res.json(bucketObjects);
+});
+
+
+app.delete('/buckets/:bucket', (req, res) => {
+  const { bucket } = req.params;
+  const directoryPath = path.join(__dirname, '/public/upload/img/', bucket);
+  if (!fs.existsSync(directoryPath)) {
+    return res.status(404).send('Bucket not found');
+  }
+  fs.rmdirSync(directoryPath, { recursive: true });
+  res.status(200).send('Bucket deleted');
 });
 
 app.listen(port, () => {
