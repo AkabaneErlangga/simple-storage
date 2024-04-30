@@ -44,19 +44,19 @@ app.use(
 );
 const upload = multer({ storage: storage });
 
-  app.post('/uploads', (req, res) => {
-    upload.single('file')(req, res, (err) => {
-      if (err) {
-        return res.status(400).send(err.message);
-      }
-      if (!req.file) {
-        return res.status(400).send('No files were uploaded.');
-      }
-      res.json({
-        image_url: `${process.env.API_URL}img/${req.body.bucket}/${req.file.filename}`,
-      });
+app.post('/uploads', (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).send(err.message);
+    }
+    if (!req.file) {
+      return res.status(400).send('No files were uploaded.');
+    }
+    res.json({
+      image_url: `${process.env.API_URL}img/${req.body.bucket}/${req.file.filename}`,
     });
   });
+});
 
 app.get('/img/:bucket/:filename', (req, res) => {
   const { bucket, filename } = req.params;
@@ -83,9 +83,14 @@ app.post('/buckets', (req, res) => {
   res.status(201).send('Bucket created');
 });
 
-app.delete('/img/:filename', (req, res) => {
-  const { filename } = req.params;
-  const filePath = path.join(__dirname, '/public/upload/img/', filename);
+app.delete('/img/:bucket/:filename', (req, res) => {
+  const { bucket, filename } = req.params;
+  const filePath = path.join(
+    __dirname,
+    '/public/upload/img/',
+    bucket,
+    filename
+  );
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
     res.status(200).send('File deleted');
@@ -93,6 +98,7 @@ app.delete('/img/:filename', (req, res) => {
     res.status(404).send('File not found');
   }
 });
+
 app.get('/images', (req, res) => {
   const directoryPath = path.join(__dirname, '/public/upload/img/');
   const buckets = fs.readdirSync(directoryPath);
@@ -128,7 +134,6 @@ app.get('/buckets', (req, res) => {
   });
   res.json(bucketObjects);
 });
-
 
 app.delete('/buckets/:bucket', (req, res) => {
   const { bucket } = req.params;
