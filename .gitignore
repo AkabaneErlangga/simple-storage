@@ -128,3 +128,6 @@ dist
 
 # File storage
 src/public/upload/img
+
+# migration db
+prisma/migrations
