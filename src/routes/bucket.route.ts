@@ -5,6 +5,6 @@ const router = Router();
 
 router.get("/", getBuckets);
 router.post("/", createBucket);
-router.delete("/:bucket", deleteBucket);
+router.delete("/:bucketId", deleteBucket);
 
 export default router;
