@@ -13,6 +13,6 @@ router.get("/", getAllImages);
 router.get("/:bucket", getImagesByBucket);
 router.get("/:bucket/:filename", getImage);
 router.post("/uploads", uploadImage);
-router.delete("/:filename", deleteImage);
+router.delete("/:bucketId/:fileId", deleteImage);
 
 export default router;

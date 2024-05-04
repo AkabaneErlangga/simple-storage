@@ -59,6 +59,8 @@ const uploadImage = async (req: Request, res: Response) => {
         },
       },
       select: {
+        id: true,
+        name: true,
         url: true,
       },
     });
@@ -99,17 +101,6 @@ const getImage = async (req: Request, res: Response) => {
 
 const getImagesByBucket = async (req: Request, res: Response) => {
   const { bucket } = req.params;
-  // const directoryPath = path.join(__dirname, "../public/upload/img/", bucket);
-  // fs.readdir(directoryPath, (err, files) => {
-  //   if (err) {
-  //     return res.status(500).send("Error reading directory");
-  //   }
-  //   const images = files.filter((file) => {
-  //     const filePath = path.join(directoryPath, file);
-  //     return fs.statSync(filePath).isFile();
-  //   });
-  //   res.json({ images });
-  // });
   const files = await prisma.bucket.findUnique({
     where: {
       name: bucket,
@@ -131,19 +122,35 @@ const getImagesByBucket = async (req: Request, res: Response) => {
 };
 
 const deleteImage = async (req: Request, res: Response) => {
-  const { fileId } = req.params;
+  const { bucketId, fileId } = req.params;
   if (!fileId) {
     return res.status(400).send("File ID is required");
   }
+  if (!bucketId) {
+    return res.status(400).send("Bucket ID is required");
+  }
+  const bucket = await prisma.bucket.findUnique({
+    where: {
+      id: bucketId,
+    },
+  });
   const file = await prisma.item.findUnique({
     where: {
       id: fileId,
     },
   });
+  if (!bucket) {
+    return res.status(404).send("Bucket not found");
+  }
   if (!file) {
     return res.status(404).send("File not found");
   }
-  const filePath = path.join(__dirname, "/public/upload/img/", file.name);
+  const filePath = path.join(
+    __dirname,
+    "../public/upload/img/",
+    bucket.name,
+    file.name
+  );
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("File not found");
   }
