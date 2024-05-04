@@ -9,7 +9,11 @@ const createBucket = async (req: Request, res: Response) => {
     return res.status(400).send("Bucket name is required");
   }
 
-  const directoryPath = path.join(__dirname, "../public/upload/img/", bucketName);
+  const directoryPath = path.join(
+    __dirname,
+    "../public/upload/img/",
+    bucketName
+  );
   if (fs.existsSync(directoryPath)) {
     return res.status(400).send("Bucket already exists");
   }
@@ -27,6 +31,45 @@ const getBuckets = async (req: Request, res: Response) => {
   res.json(buckets);
 };
 
+const updateBucket = async (req: Request, res: Response) => {
+  const { bucketId } = req.params;
+  const { bucketName } = req.body;
+  if (!bucketId) {
+    return res.status(400).send("Bucket ID is required");
+  }
+  if (!bucketName) {
+    return res.status(400).send("Bucket name is required");
+  }
+  const bucket = await prisma.bucket.findUnique({
+    where: {
+      id: bucketId,
+    },
+  });
+  if (!bucket) {
+    return res.status(404).send("Bucket not found");
+  }
+  const directoryPath = path.join(
+    __dirname,
+    "../public/upload/img/",
+    bucket.name
+  );
+  const newDirectoryPath = path.join(
+    __dirname,
+    "../public/upload/img/",
+    bucketName
+  );
+  fs.renameSync(directoryPath, newDirectoryPath);
+  const updatedBucket = await prisma.bucket.update({
+    where: {
+      id: bucketId,
+    },
+    data: {
+      name: bucketName,
+    },
+  });
+  res.json(updatedBucket);
+};
+
 const deleteBucket = async (req: Request, res: Response) => {
   const { bucketId } = req.params;
   if (!bucketId) {
@@ -34,10 +77,17 @@ const deleteBucket = async (req: Request, res: Response) => {
   }
   const bucket = await prisma.bucket.findUnique({
     where: {
-      id: bucketId
+      id: bucketId,
     },
   });
-  const directoryPath = path.join(__dirname, "../public/upload/img/", bucket?.name || '');
+  if (!bucket) {
+    return res.status(404).send("Bucket not found");
+  }
+  const directoryPath = path.join(
+    __dirname,
+    "../public/upload/img/",
+    bucket.name
+  );
   if (!fs.existsSync(directoryPath)) {
     return res.status(404).send("Bucket not found");
   }
@@ -45,4 +95,4 @@ const deleteBucket = async (req: Request, res: Response) => {
   res.status(200).send("Bucket deleted");
 };
 
-export { createBucket, getBuckets, deleteBucket };
+export { createBucket, getBuckets, deleteBucket, updateBucket };
