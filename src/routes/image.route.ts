@@ -10,7 +10,7 @@ import {
 const router = Router();
 
 router.get("/", getAllImages);
-router.get("/:bucket", getImagesByBucket);
+router.get("/:bucketName", getImagesByBucket);
 router.get("/:bucket/:filename", getImage);
 router.post("/uploads", uploadImage);
 router.delete("/:bucketId/:fileId", deleteImage);

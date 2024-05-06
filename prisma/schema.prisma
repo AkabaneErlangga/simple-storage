@@ -26,6 +26,7 @@ model item {
   name      String   @unique
   path      String
   url       String
+  size      Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   bucket    bucket   @relation(fields: [bucketId], references: [id])

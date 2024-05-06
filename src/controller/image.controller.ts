@@ -47,11 +47,13 @@ const uploadImage = async (req: Request, res: Response) => {
       fs.unlinkSync(req.file.path);
       return res.status(400).send("File is not a webp image");
     }
+    const size = fs.statSync(req.file.path).size
     const image = await prisma.item.create({
       data: {
         name: req.file.filename,
         path: req.file.path,
         url: `${process.env.API_URL}images/${req.body.bucket}/${req.file.filename}`,
+        size,
         bucket: {
           connect: {
             name: req.body.bucket,
@@ -70,18 +72,19 @@ const uploadImage = async (req: Request, res: Response) => {
 };
 
 const getAllImages = async (req: Request, res: Response) => {
-  const files = await prisma.bucket.findMany({
+  const buckets = await prisma.bucket.findMany({
     include: {
       items: {
         select: {
           id: true,
           name: true,
           url: true,
+          size: true,
         },
       },
     },
   });
-  res.json(files);
+  res.json(buckets);
 };
 
 const getImage = async (req: Request, res: Response) => {
@@ -100,10 +103,10 @@ const getImage = async (req: Request, res: Response) => {
 };
 
 const getImagesByBucket = async (req: Request, res: Response) => {
-  const { bucket } = req.params;
-  const files = await prisma.bucket.findUnique({
+  const { bucketName } = req.params;
+  const bucket = await prisma.bucket.findUnique({
     where: {
-      name: bucket,
+      name: bucketName,
     },
     include: {
       items: {
@@ -111,14 +114,15 @@ const getImagesByBucket = async (req: Request, res: Response) => {
           id: true,
           name: true,
           url: true,
+          size: true,
         },
       },
     },
   });
-  if (!files) {
+  if (!bucket) {
     return res.status(404).send("Bucket not found");
   }
-  res.json(files);
+  res.json(bucket);
 };
 
 const deleteImage = async (req: Request, res: Response) => {
