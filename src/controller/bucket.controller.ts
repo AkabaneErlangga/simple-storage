@@ -34,7 +34,29 @@ const getBuckets = async (req: Request, res: Response) => {
       },
     },
   });
-  res.json(buckets);
+
+  const bucketsWithSize = await Promise.all(
+    buckets.map(async (bucket) => {
+      const directoryPath = path.join(
+        __dirname,
+        "../public/upload/img/",
+        bucket.name
+      );
+      const files = await fs.promises.readdir(directoryPath);
+      let totalSize = 0;
+      for (const file of files) {
+        const filePath = path.join(directoryPath, file);
+        const stats = await fs.promises.stat(filePath);
+        totalSize += stats.size;
+      }
+      return {
+        ...bucket,
+        size: totalSize,
+      };
+    })
+  );
+
+  res.json(bucketsWithSize);
 };
 
 const updateBucket = async (req: Request, res: Response) => {
