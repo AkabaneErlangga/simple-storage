@@ -27,7 +27,13 @@ const createBucket = async (req: Request, res: Response) => {
 };
 
 const getBuckets = async (req: Request, res: Response) => {
-  const buckets = await prisma.bucket.findMany();
+  const buckets = await prisma.bucket.findMany({
+    include: {
+      _count: {
+        select: { items: true },
+      },
+    },
+  });
   res.json(buckets);
 };
 
