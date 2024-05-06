@@ -91,6 +91,11 @@ const deleteBucket = async (req: Request, res: Response) => {
   if (!fs.existsSync(directoryPath)) {
     return res.status(404).send("Bucket not found");
   }
+  await prisma.bucket.delete({
+    where: {
+      id: bucketId,
+    },
+  });
   fs.rmSync(directoryPath, { recursive: true });
   res.status(200).send("Bucket deleted");
 };
