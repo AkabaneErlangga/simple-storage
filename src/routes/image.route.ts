@@ -10,9 +10,11 @@ import {
 const router = Router();
 
 router.get("/", getAllImages);
+router.get("/:bucketName", getImagesByBucket);
 router.post("/uploads", uploadImage);
 router.get("/:bucket", getImagesByBucket);
 router.get("/:bucket/:filename", getImage);
-router.delete("/:filename", deleteImage);
+router.post("/uploads", uploadImage);
+router.delete("/:bucketId/:fileId", deleteImage);
 
 export default router;
