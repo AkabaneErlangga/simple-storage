@@ -11,20 +11,20 @@ const port = process.env.PORT || 3001;
 
 app.use(bodyParser.json());
 app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE"],
-    allowedHeaders: ["Content-Type"],
-  })
+	cors({
+		origin: "*",
+		methods: ["GET", "POST", "DELETE"],
+		allowedHeaders: ["Content-Type"],
+	})
 );
-app.use('/', routes)
+app.use("/", routes);
 app.get("/", (req, res) => {
-  res.send("Im alive!!");
-})
+	res.send("Im alive!!");
+});
 
 app.listen(port, () => {
-  if (!fs.existsSync("./src/public/upload/img")) {
-    fs.mkdirSync("./src/public/upload/img", { recursive: true });
-  }
-  console.log(`App listening on port ${port}`);
+	if (!fs.existsSync("./src/public/upload/img")) {
+		fs.mkdirSync("./src/public/upload/img", { recursive: true });
+	}
+	console.log(`App listening on port ${port}`);
 });

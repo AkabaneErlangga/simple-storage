@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
     cb: DestinationCallback
   ): void => {
     if (!fs.existsSync(`./src/public/upload/img/${req.body.bucket}`)) {
-      return cb(new Error("Bucket not found"), "");
+      return cb(new Error('Bucket not found'), '');
     }
     cb(null, `./src/public/upload/img/${req.body.bucket}`);
   },
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     cb: FileNameCallback
   ): void => {
-    cb(null, Date.now() + "-" + file.originalname);
+    cb(null, Date.now() + '-' + file.originalname);
   },
 });
 const upload = multer({ storage: storage });
@@ -34,18 +34,18 @@ const uploadImage = async (req: Request, res: Response) => {
       return res.status(400).send(err.message);
     }
     if (!req.file) {
-      return res.status(400).send("No files were uploaded.");
+      return res.status(400).send('No files were uploaded.');
     }
     if (!req.body.bucket) {
-      return res.status(400).send("Bucket not provided");
+      return res.status(400).send('Bucket not provided');
     }
     if (req.file.size > 1024 * 1024) {
       fs.unlinkSync(req.file.path);
-      return res.status(400).send("File size exceeds 1MB");
+      return res.status(400).send('File size exceeds 1MB');
     }
-    if (req.file.mimetype !== "image/webp") {
+    if (req.file.mimetype !== 'image/webp') {
       fs.unlinkSync(req.file.path);
-      return res.status(400).send("File is not a webp image");
+      return res.status(400).send('File is not a webp image');
     }
     const size = fs.statSync(req.file.path).size
     const image = await prisma.item.create({
@@ -87,18 +87,32 @@ const getAllImages = async (req: Request, res: Response) => {
   res.json(buckets);
 };
 
+const getAllImages = async (req: Request, res: Response) => {
+  const directoryPath = path.join(__dirname, '../public/upload/img/');
+  const buckets = fs.readdirSync(directoryPath);
+  const files = buckets.map((bucket) => {
+    const bucketPath = path.join(directoryPath, bucket);
+    const images = fs.readdirSync(bucketPath);
+    return {
+      bucket,
+      images,
+    };
+  });
+  res.json(files);
+};
+
 const getImage = async (req: Request, res: Response) => {
   const { bucket, filename } = req.params;
   const filePath = path.join(
     __dirname,
-    "../public/upload/img/",
+    '../public/upload/img/',
     bucket,
     filename
   );
   if (fs.existsSync(filePath)) {
     res.status(200).sendFile(filePath);
   } else {
-    res.status(404).send("File not found");
+    res.status(404).send('File not found');
   }
 };
 
