@@ -30,6 +30,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
+            whoami
             cd /usr/projects/simple-storage
             git pull origin master
             git status
