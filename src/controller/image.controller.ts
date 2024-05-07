@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const uploadImage = async (req: Request, res: Response) => {
-	const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+	const acceptedImageTypes = ["image/jpeg", "image/jpg" ,"image/png", "image/webp", "image/svg"];
 	upload.single("file")(req, res, async (err) => {
 		if (err) {
 			return res.status(400).send(err.message);
