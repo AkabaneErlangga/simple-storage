@@ -17,6 +17,7 @@ app.use(
 		allowedHeaders: ["Content-Type"],
 	})
 );
+app.set("publicDir", "./src/public");
 app.use("/", routes);
 app.get("/", (req, res) => {
 	res.send("Im alive!!");
