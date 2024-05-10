@@ -32,6 +32,9 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             whoami
+            sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/node" "/usr/local/bin/node"
+            sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/npm" "/usr/local/bin/pnpm"
+            sudo ln -s "$NVM_DIR/versions/node/$(nvm version)/bin/pm2" "/usr/local/bin/pm2"
             cd /usr/projects/simple-storage
             git pull
             git status
