@@ -91,6 +91,9 @@ const getAllImages = async (req: Request, res: Response) => {
 					url: true,
 					size: true,
 				},
+				where: {
+					deletedAt: null,
+				},
 			},
 		},
 	});
@@ -99,6 +102,18 @@ const getAllImages = async (req: Request, res: Response) => {
 
 const getImage = async (req: Request, res: Response) => {
 	const { bucket, filename } = req.params;
+	const file = await prisma.item.findFirst({
+		where: {
+			name: filename,
+			bucket: {
+				name: bucket,
+			},
+			deletedAt: null,
+		},
+	});
+	if (!file) {
+		return res.status(404).send("File not found");
+	}
 	const filePath = path.join(bucketDir, bucket, filename);
 	if (!fs.existsSync(filePath)) {
 		return res.status(404).send("File not found");
@@ -119,6 +134,9 @@ const getImagesByBucket = async (req: Request, res: Response) => {
 					name: true,
 					url: true,
 					size: true,
+				},
+				where: {
+					deletedAt: null,
 				},
 			},
 		},
@@ -157,13 +175,117 @@ const deleteImage = async (req: Request, res: Response) => {
 	if (!fs.existsSync(filePath)) {
 		return res.status(404).send("File not found");
 	}
-	fs.unlinkSync(filePath);
-	await prisma.item.delete({
-		where: {
-			id: fileId,
-		},
-	});
+	// fs.unlinkSync(filePath);
+	try {
+		await prisma.item.update({
+			where: {
+				id: fileId,
+			},
+			data: {
+				deletedAt: new Date(),
+			},
+		});
+	} catch (error) {
+		return res.status(500).send("Error deleting file");
+	}
 	res.status(200).send("File deleted");
 };
 
-export { uploadImage, getImage, getImagesByBucket, deleteImage, getAllImages };
+const destroyImage = async (req: Request, res: Response) => {
+	const { fileId } = req.params;
+	if (!fileId) {
+		return res.status(400).send("File ID is required");
+	}
+	const file = await prisma.item.findUnique({
+		where: {
+			id: fileId,
+			deletedAt: {
+				not: null,
+			},
+		},
+		include: {
+			bucket: true,
+		},
+	});
+	if (!file) {
+		return res.status(404).send("File not found");
+	}
+	const filePath = path.join(bucketDir, file.bucket.name, file.name);
+	if (!fs.existsSync(filePath)) {
+		return res.status(404).send("File not found");
+	}
+	try {
+		await prisma.item.delete({
+			where: {
+				id: fileId,
+			},
+		});
+	} catch (error) {
+		return res.status(500).send("Error deleting file");
+	}
+	fs.unlinkSync(filePath);
+	res.status(200).send("File deleted");
+};
+
+const restoreImage = async (req: Request, res: Response) => {
+	const { fileId } = req.params;
+	if (!fileId) {
+		return res.status(400).send("File ID is required");
+	}
+	const file = await prisma.item.findUnique({
+		where: {
+			id: fileId,
+			deletedAt: {
+				not: null,
+			},
+		},
+		include: {
+			bucket: true,
+		},
+	});
+	if (!file) {
+		return res.status(404).send("File not found");
+	}
+	const filePath = path.join(bucketDir, file.bucket.name, file.name);
+	if (!fs.existsSync(filePath)) {
+		return res.status(404).send("File not found");
+	}
+	await prisma.item.update({
+		where: {
+			id: fileId,
+		},
+		data: {
+			deletedAt: null,
+		},
+	});
+	res.status(200).send("File restored");
+};
+
+const getDeletedImages = async (req: Request, res: Response) => {
+	const files = await prisma.item.findMany({
+		where: {
+			deletedAt: {
+				not: null,
+			},
+		},
+		select: {
+			id: true,
+			name: true,
+			url: true,
+			size: true,
+			deletedAt: true,
+		},
+	});
+	res.json(files);
+};
+
+export {
+	uploadImage,
+	getImage,
+	getImagesByBucket,
+	deleteImage,
+	getAllImages,
+	destroyImage,
+	restoreImage,
+	getDeletedImages,
+};
