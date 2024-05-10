@@ -261,6 +261,24 @@ const restoreImage = async (req: Request, res: Response) => {
 	res.status(200).send("File restored");
 };
 
+const getDeletedImages = async (req: Request, res: Response) => {
+	const files = await prisma.item.findMany({
+		where: {
+			deletedAt: {
+				not: null,
+			},
+		},
+		select: {
+			id: true,
+			name: true,
+			url: true,
+			size: true,
+			deletedAt: true,
+		},
+	});
+	res.json(files);
+};
+
 export {
 	uploadImage,
 	getImage,
@@ -269,4 +287,5 @@ export {
 	getAllImages,
 	destroyImage,
 	restoreImage,
+	getDeletedImages,
 };

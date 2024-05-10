@@ -3,6 +3,7 @@ import {
 	deleteImage,
 	destroyImage,
 	getAllImages,
+	getDeletedImages,
 	getImage,
 	getImagesByBucket,
 	restoreImage,
@@ -12,6 +13,7 @@ import {
 const router = Router();
 
 router.get("/", getAllImages);
+router.get("/deleted", getDeletedImages);
 router.get("/:bucketName", getImagesByBucket);
 router.post("/uploads", uploadImage);
 router.get("/:bucket", getImagesByBucket);
