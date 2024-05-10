@@ -33,20 +33,28 @@ const getBuckets = async (req: Request, res: Response) => {
 	const buckets = await prisma.bucket.findMany({
 		include: {
 			_count: {
-				select: { items: true },
+				select: {
+					items: {
+						where: {
+							deletedAt: null,
+						},
+					},
+				},
 			},
 		},
 	});
 
 	const bucketsWithSize = await Promise.all(
 		buckets.map(async (bucket) => {
-			const directoryPath = path.join(bucketDir, bucket.name);
-			const files = await fs.promises.readdir(directoryPath);
+			const files = await prisma.item.findMany({
+				where: {
+					bucketId: bucket.id,
+					deletedAt: null,
+				},
+			});
 			let totalSize = 0;
 			for (const file of files) {
-				const filePath = path.join(directoryPath, file);
-				const stats = await fs.promises.stat(filePath);
-				totalSize += stats.size;
+				totalSize += file.size;
 			}
 			return {
 				...bucket,
