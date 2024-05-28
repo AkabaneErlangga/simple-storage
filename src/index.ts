@@ -14,7 +14,6 @@ app.use(
 	cors({
 		origin: "*",
 		methods: ["GET", "POST", "DELETE", "PUT"],
-		allowedHeaders: ["Content-Type"],
 	})
 );
 app.set("publicDir", "./src/public");
